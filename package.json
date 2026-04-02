@@ -1,0 +1,29 @@
+{
+  "name": "ccx-cli",
+  "version": "0.1.0",
+  "description": "Claude Code launcher - switch providers and models with ease",
+  "type": "module",
+  "bin": {
+    "ccx": "./bin/ccx.mjs"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "scripts": {
+    "start": "node bin/ccx.mjs"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "cli",
+    "launcher"
+  ],
+  "author": "twoer",
+  "license": "MIT",
+  "dependencies": {
+    "@clack/prompts": "^0.10.0",
+    "better-sqlite3": "^11.8.0",
+    "picocolors": "^1.1.1"
+  }
+}
