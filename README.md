@@ -22,10 +22,7 @@ $ ccx
 ## 安装
 
 ```bash
-# 克隆并链接
-git clone https://github.com/twoer/ccx.git ~/.ccx
-cd ~/.ccx && npm install
-ln -s ~/.ccx/bin/ccx.mjs /usr/local/bin/ccx
+npm i -g @twoer/ccx
 ```
 
 ### 环境要求
