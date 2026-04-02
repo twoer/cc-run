@@ -1,62 +1,78 @@
 # ccx
 
-Claude Code launcher - switch providers and models with ease.
+**C**laude **C**ode e**X**ecutor — 轻松切换 Provider 和模型。
 
 ```
 $ ccx
 
-  Select provider: (↑/↓ move, Enter confirm, q quit)
-  ────────────────────────────────────────
-  ▸ Zhipu GLM-5 Turbo         [glm-5-turbo]
-    Zhipu GLM-5.1              [glm-5.1]
-    Claude Official            [claude-sonnet-4-20250514]
-  ────────────────────────────────────────
+┌  ⚡ ccx — Claude Code eXecutor
+│
+│  5 providers from cc-switch · v0.1.0
+│    ccx add   Add provider    ccx edit  Edit provider
+│    ccx list  List providers   ccx rm    Remove provider
+│    ccx -n    New window       ccx help  Show help
+│
+◆  Select provider
+│  ● Zhipu GLM-5.1           glm-5.1
+│  ○ Zhipu GLM-5 Turbo       glm-5-turbo
+│  ○ Claude Official
+└
 ```
 
-## Install
+## 安装
 
 ```bash
-curl -sL https://raw.githubusercontent.com/twoer/ccx/main/install.sh | zsh
+# 克隆并链接
+git clone https://github.com/twoer/ccx.git ~/.ccx
+cd ~/.ccx && npm install
+ln -s ~/.ccx/bin/ccx.mjs /usr/local/bin/ccx
 ```
 
-### Requirements
+### 环境要求
 
 - macOS
-- zsh (pre-installed on macOS)
-- [jq](https://jqlang.org/) (`brew install jq`)
+- Node.js >= 18
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
 
-## Usage
+## 使用
 
 ```bash
-# Interactive selection, run in current terminal
+# 交互选择，在当前终端运行
 ccx
 
-# Fuzzy match provider name
+# 模糊匹配 provider 名称
 ccx glm
 
-# Open in a new terminal window
+# 在新终端窗口中打开
 ccx --new
 ccx -n glm
-
-# Show help
-ccx --help
-
-# Reset config
-ccx --reset
 ```
 
-## Provider Sources
+## 命令
 
-ccx auto-detects available provider sources:
+```bash
+# 管理 Provider
+ccx add           # 交互式添加 provider
+ccx list          # 列出所有 provider
+ccx edit          # 编辑 provider
+ccx rm            # 删除 provider
 
-### 1. cc-switch (auto-detected)
+# 其他
+ccx help          # 显示帮助
+ccx --reset       # 重置所有配置
+```
 
-If you use [cc-switch](https://github.com/nicepkg/cc-switch), ccx reads providers directly from `~/.cc-switch/cc-switch.db`. No extra configuration needed.
+## Provider 数据源
 
-### 2. JSON file (manual)
+ccx 会自动检测可用的数据源：
 
-Create `~/.config/ccx/providers.json`:
+### 1. cc-switch（自动检测）
+
+如果你使用 [cc-switch](https://github.com/nicepkg/cc-switch)，ccx 会直接读取 `~/.cc-switch/cc-switch.db`，无需额外配置。
+
+### 2. JSON 文件（手动配置）
+
+手动创建 `~/.config/ccx/providers.json`，或使用 `ccx add` 交互式创建：
 
 ```json
 {
@@ -74,25 +90,17 @@ Create `~/.config/ccx/providers.json`:
 }
 ```
 
-See [config.example.json](config.example.json) for a full example.
+## 终端支持
 
-## Configuration
-
-Config file: `~/.config/ccx/config.json`
-
-```json
-{
-  "terminal": "Ghostty"
-}
-```
-
-The terminal is auto-detected on first `ccx --new`. Supported terminals:
+使用 `ccx --new` 时，首次运行会自动检测已安装的终端：
 
 - Ghostty
 - iTerm2
 - Warp
 - kitty
 - Terminal.app
+
+配置文件：`~/.config/ccx/config.json`
 
 ## License
 

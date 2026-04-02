@@ -1,4 +1,4 @@
-import { intro, outro, select, cancel, isCancel, log, spinner } from '@clack/prompts'
+import { intro, outro, select, cancel, isCancel, log } from '@clack/prompts'
 import pc from 'picocolors'
 import { writeFileSync, mkdtempSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
@@ -7,11 +7,15 @@ import { spawn } from 'node:child_process'
 import { loadProviders } from './providers/index.mjs'
 import { detectTerminals, getTerminal } from './terminals/index.mjs'
 import * as config from './config.mjs'
+import * as commands from './commands.mjs'
 
 const VERSION = '0.1.0'
 
+const SUBCOMMANDS = ['list', 'ls', 'add', 'rm', 'remove', 'edit', 'help']
+
 function parseArgs(argv) {
   const flags = { newWindow: false, help: false, version: false, reset: false }
+  let command = null
   let query = ''
 
   for (const arg of argv) {
@@ -25,11 +29,15 @@ function parseArgs(argv) {
           console.error(`Unknown option: ${arg}`)
           process.exit(1)
         }
-        query = arg
+        if (!command && SUBCOMMANDS.includes(arg)) {
+          command = arg
+        } else {
+          query = arg
+        }
     }
   }
 
-  return { flags, query }
+  return { flags, command, query }
 }
 
 function showHelp() {
@@ -37,7 +45,13 @@ function showHelp() {
   ${pc.cyan(pc.bold('⚡ ccx'))} ${pc.dim(`v${VERSION}`)}
   ${pc.dim('Claude Code launcher')}
 
-  ${pc.bold('Usage:')} ccx [options] [provider-name]
+  ${pc.bold('Usage:')} ccx [command] [options] [provider-name]
+
+  ${pc.bold('Commands:')}
+    ${pc.cyan('list')}, ${pc.cyan('ls')}     List all providers
+    ${pc.cyan('add')}           Add a new provider
+    ${pc.cyan('edit')}          Edit an existing provider
+    ${pc.cyan('rm')}            Remove a provider
 
   ${pc.bold('Options:')}
     ${pc.cyan('-n')}, ${pc.cyan('--new')}      Open in a new terminal window
@@ -49,7 +63,10 @@ function showHelp() {
     ${pc.dim('$')} ccx              ${pc.dim('# Interactive select, current terminal')}
     ${pc.dim('$')} ccx glm          ${pc.dim('# Fuzzy match provider name')}
     ${pc.dim('$')} ccx --new        ${pc.dim('# Interactive select, new window')}
-    ${pc.dim('$')} ccx -n glm       ${pc.dim('# Fuzzy match + new window')}
+    ${pc.dim('$')} ccx add          ${pc.dim('# Add a new provider')}
+    ${pc.dim('$')} ccx list         ${pc.dim('# List all providers')}
+    ${pc.dim('$')} ccx edit         ${pc.dim('# Edit a provider')}
+    ${pc.dim('$')} ccx rm           ${pc.dim('# Remove a provider')}
 
   ${pc.bold('Providers:')}
     ${pc.cyan('cc-switch')}  ${pc.dim('auto-detected from ~/.cc-switch/cc-switch.db')}
@@ -94,7 +111,7 @@ async function selectTerminal() {
 }
 
 export async function run(argv) {
-  const { flags, query } = parseArgs(argv)
+  const { flags, command, query } = parseArgs(argv)
 
   if (flags.version) {
     console.log(`ccx ${VERSION}`)
@@ -112,19 +129,34 @@ export async function run(argv) {
     return
   }
 
-  // Load providers
-  intro(pc.cyan(pc.bold('⚡ ccx')))
-  log.message(`${pc.dim('Switch Claude Code providers and models with ease.')}`)
+  // Handle subcommands
+  if (command) {
+    switch (command) {
+      case 'help': showHelp(); return
+      case 'list': case 'ls': return commands.list()
+      case 'add': return commands.add()
+      case 'rm': case 'remove': return commands.rm()
+      case 'edit': return commands.edit()
+    }
+  }
+
+  // Default: launch claude
+  intro(`${pc.cyan(pc.bold('⚡ ccx'))} ${pc.dim('— Claude Code eXecutor')}`)
   const { providers, source } = await loadProviders()
-  log.message(pc.dim(`${providers.length} providers from ${source || 'none'} · v${VERSION}`))
+  log.message(
+    pc.dim(`${providers.length} providers from ${source || 'none'} · v${VERSION}\n`) +
+    pc.dim(`  ccx ${pc.cyan('add')}   Add provider    ccx ${pc.cyan('edit')}  Edit provider\n`) +
+    pc.dim(`  ccx ${pc.cyan('list')}  List providers   ccx ${pc.cyan('rm')}    Remove provider\n`) +
+    pc.dim(`  ccx ${pc.cyan('-n')}    New window       ccx ${pc.cyan('help')}  Show help`),
+  )
 
   if (providers.length === 0) {
     log.error('No providers found')
     log.message('')
-    log.message(`  ${pc.cyan('cc-switch')}  ${pc.dim('auto-detected from ~/.cc-switch/cc-switch.db')}`)
-    log.message(`  ${pc.cyan('JSON file')}  ${pc.dim('configure at ~/.config/ccx/providers.json')}`)
+    log.message(`  ${pc.cyan('1.')} Run ${pc.bold('ccx add')} to add a provider`)
+    log.message(`  ${pc.cyan('2.')} Or install ${pc.bold('cc-switch')} for auto-detection`)
     log.message('')
-    cancel('Setup a provider source first')
+    cancel('Setup a provider first')
     return
   }
 
@@ -173,7 +205,6 @@ export async function run(argv) {
   } else {
     outro(`${pc.green('⚡')} ${selected.name} ${pc.dim(`(${selected.model})`)}`)
 
-    // Replace current process with claude
     const child = spawn('claude', ['--settings', settingsFile], {
       stdio: 'inherit',
       env: { ...process.env },
