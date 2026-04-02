@@ -1,10 +1,10 @@
 {
-  "name": "cc-run",
+  "name": "ccx-run",
   "version": "0.2.0",
   "description": "Claude Code launcher - switch providers and models with ease",
   "type": "module",
   "bin": {
-    "cc-run": "./dist/bin/cc-run.js"
+    "ccx-run": "./dist/bin/ccx-run.js"
   },
   "files": [
     "dist"
@@ -12,7 +12,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "start": "node dist/bin/cc-run.js"
+    "start": "node dist/bin/ccx-run.js"
   },
   "keywords": [
     "claude",
